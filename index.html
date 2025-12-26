@@ -130,11 +130,11 @@
                 <textarea id="inputText" placeholder="Dán text vào đây..." onscroll="syncScroll(this, 'output-list-t3', 'warning-msg-t3')"></textarea>
             </div>
             <div class="column">
-                <label>Output (Từng dòng)</label>
+                <label>Output</label>
                 <div id="output-list-t3" class="output-container" onscroll="syncScroll(this, 'inputText', 'warning-msg-t3')"></div>
             </div>
             <div class="column">
-                <label>Bảng cảnh báo (Theo dòng)</label>
+                <label>Bảng cảnh báo</label>
                 <div id="warning-msg-t3" class="warning-panel" onscroll="syncScroll(this, 'inputText', 'output-list-t3')"></div>
             </div>
         </div>
@@ -152,11 +152,11 @@
                 <textarea id="inputTextT4" placeholder="Dán text vào đây..." onscroll="syncScroll(this, 'output-list-t4', 'warning-msg-t4')"></textarea>
             </div>
             <div class="column">
-                <label>Output (Từng dòng)</label>
+                <label>Output</label>
                 <div id="output-list-t4" class="output-container" onscroll="syncScroll(this, 'inputTextT4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
-                <label>Bảng cảnh báo (Theo dòng)</label>
+                <label>Bảng cảnh báo</label>
                 <div id="warning-msg-t4" class="warning-panel" onscroll="syncScroll(this, 'inputTextT4', 'output-list-t4')"></div>
             </div>
         </div>
@@ -187,7 +187,7 @@
         // Thêm class hiệu ứng
         btn.classList.add('copied');
         const oldText = btn.innerText;
-        btn.innerText = "OK! ✅";
+        btn.innerText = "Copied!✅";
         
         // Trở về trạng thái cũ sau 1s
         setTimeout(() => {
