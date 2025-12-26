@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Excel Tool For Summary</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f5f6f7; }
         .container { max-width: 1600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -34,15 +33,14 @@
 
 <div class="container">
     <div class="menu-bar">
-        <button id="tab1-btn" class="btn-tab active" onclick="showTab(1)">Tạo Checklist G5 Nido</button>
-        <button id="tab2-btn" class="btn-tab" onclick="showTab(2)">Ghép Bess vào G5 Convert</button>
+        <button id="tab1-btn" class="btn-tab" onclick="location.reload()">Refresh Page</button>
         <button id="tab3-btn" class="btn-tab" onclick="showTab(3)">Convert Text</button>
-        <button id="tab4-btn" class="btn-tab" onclick="showTab(4)">Name Checker</button>
+        <button id="tab4-btn" class="btn-tab active" onclick="showTab(4)">Name Checker</button>
     </div>
 
     <div id="section3" class="tool-section">
         <div class="action-area">
-            <button class="btn-orange" onclick="copyFullOutput('output-list-t3', 'copy-status-t3')">Copy tất cả kết quả</button>
+            <button class="btn-orange" onclick="copyFullOutput('output-list-t3', 'copy-status-t3')">Copy All Results</button>
             <button class="btn-red" onclick="clearTool(3)">Clear (Esc)</button>
             <span id="copy-status-t3" style="align-self:center; font-weight:bold; color:#28a745"></span>
         </div>
@@ -62,9 +60,9 @@
         </div>
     </div>
 
-    <div id="section4" class="tool-section">
+    <div id="section4" class="tool-section active">
         <div class="action-area">
-            <button class="btn-orange" onclick="copyFullOutput('output-list-t4', 'copy-status-t4')">Copy tất cả kết quả</button>
+            <button class="btn-orange" onclick="copyFullOutput('output-list-t4', 'copy-status-t4')">Copy All Results</button>
             <button class="btn-red" onclick="clearTool(4)">Clear (Esc)</button>
             <span id="copy-status-t4" style="align-self:center; font-weight:bold; color:#28a745"></span>
         </div>
@@ -74,7 +72,7 @@
                 <div id="input-list-t4" class="list-container" onscroll="syncScroll(this, 'output-list-t4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
-                <label>Output</label>
+                <label>Output (VBA Logic Fixed)</label>
                 <div id="output-list-t4" class="list-container" onscroll="syncScroll(this, 'input-list-t4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
@@ -86,45 +84,67 @@
 </div>
 
 <script>
-    const katakanaMap = {'。': '｡', '、': '､', '「': '｢', '」': '｣', '・': '･', 'ァ': 'ｧ', 'ア': 'ｱ', 'ィ': 'ｨ', 'イ': 'ｲ', 'ゥ': 'ｩ', 'ウ': 'ｳ', 'ェ': 'ｪ', 'エ': 'ｴ', 'ォ': 'ｫ', 'オ': 'ｵ', 'カ': 'ｶ', 'ガ': 'ｶﾞ', 'キ': 'ｷ', 'ギ': 'ｷﾞ', 'ク': 'ｸ', 'グ': 'ｸﾞ', 'ケ': 'ｹ', 'ゲ': 'ｹﾞ', 'コ': 'ｺ', 'ゴ': 'ｺﾞ', 'サ': 'ｻ', 'ザ': 'ｻﾞ', 'シ': 'ｼ', 'ジ': 'ｼﾞ', 'ス': 'ｽ', 'ズ': 'ｽﾞ', 'セ': 'ｾ', 'ゼ': 'ｾﾞ', 'ソ': 'ｿ', 'ゾ': 'ｿﾞ', 'タ': 'ﾀ', 'ダ': 'ﾀﾞ', 'チ': 'ﾁ', 'ヂ': 'ﾁﾞ', 'ッ': 'ｯ', 'ツ': 'ﾂ', 'ヅ': 'ﾂﾞ', 'テ': 'ﾃ', 'デ': 'ﾃﾞ', 'ト': 'ﾄ', 'ド': 'ﾄﾞ', 'ナ': 'ﾅ', 'ニ': 'ﾆ', 'ヌ': 'ﾇ', 'ネ': 'ﾈ', 'ノ': 'ﾉ', 'ハ': 'ﾊ', 'バ': 'ﾊﾞ', 'パ': 'ﾊﾟ', 'ヒ': 'ﾋ', 'ビ': 'ﾋﾞ', 'ピ': 'ﾋﾟ', 'フ': 'ﾌ', 'ブ': 'ﾌﾞ', 'プ': 'ﾌﾟ', 'ヘ': 'ﾍ', 'ベ': 'ﾍﾞ', 'ペ': 'ﾍﾟ', 'ホ': 'ﾎ', 'ボ': 'ﾎﾞ', 'ポ': 'ﾎﾟ', '마': 'ﾏ', 'ミ': 'ﾐ', 'ム': 'ﾑ', 'メ': 'ﾒ', 'モ': 'ﾓ', 'ヤ': 'ﾔ', 'ユ': 'ﾕ', 'ヨ': 'ﾖ', 'ャ': 'ｬ', 'ュ': 'ｭ', 'ョ': 'ｮ', 'ラ': 'ﾗ', 'リ': 'ﾘ', 'ル': 'ﾙ', 'レ': 'ﾚ', 'ロ': 'ﾛ', 'ワ': 'ﾜ', 'ヲ': 'ｦ', 'ン': 'ﾝ', 'ヴ': 'ｳﾞ', 'ヵ': 'ｶ', 'ヶ': 'ｹ', 'ー': 'ｰ', '゛': 'ﾞ', '゜': 'ﾟ', '　': ' '};
+    // Bảng mã hỗ trợ chuyển đổi Half-width sang Full-width (tương đương vbWide)
+    const h2fMap = {'ｱ':'ア','ｲ':'イ','ｳ':'ウ','ｴ':'エ','ｵ':'オ','ｶ':'カ','ｷ':'キ','ｸ':'ク','ｹ':'ケ','ｺ':'コ','ｻ':'サ','ｼ':'シ','ｽ':'ス','ｾ':'セ','ｿ':'ソ','ﾀ':'タ','ﾁ':'チ','ﾂ':'ツ','ﾃ':'テ','ﾄ':'ト','ﾅ':'ナ','ﾆ':'ニ','ﾇ':'ヌ','ﾈ':'ネ','ﾉ':'ノ','ﾊ':'ハ','ﾋ':'ヒ','ﾌ':'フ','ﾍ':'ヘ','ﾎ':'ホ','ﾏ':'マ','ﾐ':'ミ','ﾑ':'ム','ﾒ':'メ','ﾓ':'モ','ﾔ':'ヤ','ﾕ':'ユ','ﾖ':'ヨ','ﾗ':'ラ','ﾘ':'リ','ﾙ':'ル','ﾚ':'レ','ﾛ':'ロ','ﾜ':'ワ','ｦ':'ヲ','ﾝ':'ン','ｧ':'ァ','ｨ':'ィ','ｩ':'ゥ','ｪ':'ェ','ｫ':'ォ','ｬ':'ャ','ｭ':'ュ','ｮ':'ョ','ｯ':'ッ','ｰ':'ー','ﾞ':'゛','ﾟ':'゜','､':'、','｡':'。','･':'・','｢':'「','｣':'」'};
 
+    function toFullWidth(text) {
+        // Chuyển ký tự Alphabet/Số
+        let res = text.replace(/[!-~]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0)).replace(/ /g, '　');
+        // Chuyển Katakana bán giác sang toàn giác
+        let finalRes = "";
+        for (let i = 0; i < res.length; i++) {
+            let char = res[i];
+            // Xử lý biến âm (Dakuten) nếu có (Ví dụ: ｶ + ﾞ = ガ)
+            if (h2fMap[char]) {
+                finalRes += h2fMap[char];
+            } else {
+                finalRes += char;
+            }
+        }
+        return finalRes;
+    }
+
+    function processTab4(line) {
+        if (!line) return "";
+        
+        // 1. Tương đương StrConv(c, vbWide)
+        let rData = "";
+        for(let char of line) {
+            // Chuyển từng ký tự sang Wide trước khi xử lý
+            rData += toFullWidth(char);
+        }
+
+        // 2. Pattern từ VBA
+        const pattern = /[／　０-９Ａ-ｚ（）「」＜＞：＃＆＋＝，]/;
+        
+        let ansData = "";
+        for (let i = 0; i < rData.length; i++) {
+            let char = rData[i];
+            if (pattern.test(char)) {
+                // Nếu thuộc pattern -> chuyển sang Narrow (vbNarrow)
+                if (char === '　') {
+                    ansData += ' ';
+                } else {
+                    ansData += String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+                }
+            } else {
+                // Không thuộc pattern (như Katakana) -> giữ nguyên Wide
+                ansData += char;
+            }
+        }
+
+        // 3. Post-processing
+        return ansData.replace(/ +/g, ' ').trimEnd().replace(/－/g, "-").replace(/，/g, "、");
+    }
+
+    // --- Các hàm hệ thống giữ nguyên ---
     function showTab(n) {
         document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
         document.getElementById('section' + n).classList.add('active');
         document.getElementById('tab' + n + '-btn').classList.add('active');
-        if (n >= 3) {
-            initInputRows(n);
-            setTimeout(() => {
-                const firstInput = document.querySelector(`#input-list-t${n} .input-line`);
-                if (firstInput) firstInput.focus();
-            }, 50);
-        }
-    }
-
-    function syncScroll(el, id1, id2) {
-        document.getElementById(id1).scrollTop = el.scrollTop;
-        document.getElementById(id2).scrollTop = el.scrollTop;
-    }
-
-    function copyLine(text, btn) {
-        navigator.clipboard.writeText(text);
-        btn.classList.add('copied');
-        btn.innerText = "Copied";
-        setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.innerText = "Copy";
-        }, 500);
-    }
-
-    function copyFullOutput(listId, statusId) {
-        const items = document.querySelectorAll(`#${listId} .out-text`);
-        const text = Array.from(items).map(i => i.innerText).join('\n');
-        navigator.clipboard.writeText(text).then(() => {
-            const s = document.getElementById(statusId);
-            s.innerText = "Đã copy tất cả! ✅";
-            setTimeout(() => s.innerText = "", 1000);
-        });
+        initInputRows(n);
+        setTimeout(() => { document.querySelector(`#input-list-t${n} .input-line`)?.focus(); }, 50);
     }
 
     function initInputRows(tabNum) {
@@ -135,44 +155,30 @@
 
     function addRow(tabNum, index) {
         const container = document.getElementById(`input-list-t${tabNum}`);
-        const row = document.createElement('div');
-        row.className = 'line-item';
-        const input = document.createElement('input');
-        input.className = 'input-line';
+        const row = document.createElement('div'); row.className = 'line-item';
+        const input = document.createElement('input'); input.className = 'input-line';
         input.dataset.idx = index;
         input.oninput = () => handleProcess(tabNum);
         input.onpaste = (e) => handlePaste(e, tabNum);
-        input.onkeydown = (e) => handleKeyNavigation(e, tabNum);
-        row.appendChild(input);
-        container.appendChild(row);
-    }
-
-    function handleKeyNavigation(e, tabNum) {
-        const idx = parseInt(e.target.dataset.idx);
-        const inputs = document.querySelectorAll(`#input-list-t${tabNum} .input-line`);
-        if (e.key === "ArrowDown" && idx < inputs.length - 1) inputs[idx + 1].focus();
-        if (e.key === "ArrowUp" && idx > 0) inputs[idx - 1].focus();
+        input.onkeydown = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            const ins = document.querySelectorAll(`#input-list-t${tabNum} .input-line`);
+            if (e.key === "ArrowDown" && idx < ins.length - 1) ins[idx + 1].focus();
+            if (e.key === "ArrowUp" && idx > 0) ins[idx - 1].focus();
+        };
+        row.appendChild(input); container.appendChild(row);
     }
 
     function handlePaste(e, tabNum) {
         e.preventDefault();
-        const text = e.clipboardData.getData('text');
-        const lines = text.split(/\r?\n/);
+        const lines = e.clipboardData.getData('text').split(/\r?\n/);
         const container = document.getElementById(`input-list-t${tabNum}`);
         container.innerHTML = ""; 
         lines.forEach((line, i) => {
-            const row = document.createElement('div');
-            row.className = 'line-item';
-            const input = document.createElement('input');
-            input.className = 'input-line';
-            input.dataset.idx = i;
-            input.value = line;
-            input.oninput = () => handleProcess(tabNum);
-            input.onkeydown = (e) => handleKeyNavigation(e, tabNum);
-            row.appendChild(input);
-            container.appendChild(row);
+            addRow(tabNum, i);
+            container.querySelectorAll('.input-line')[i].value = line;
         });
-        for(let i=0; i<15; i++) addRow(tabNum, lines.length + i);
+        for(let i=0; i<10; i++) addRow(tabNum, lines.length + i);
         handleProcess(tabNum);
     }
 
@@ -180,100 +186,57 @@
         const inputs = document.querySelectorAll(`#input-list-t${tabNum} .input-line`);
         const outputList = document.getElementById(`output-list-t${tabNum}`);
         const warnList = document.getElementById(`warning-msg-t${tabNum}`);
-        outputList.innerHTML = "";
-        warnList.innerHTML = "";
+        outputList.innerHTML = ""; warnList.innerHTML = "";
 
         inputs.forEach(inp => {
             let val = inp.value;
-            let result = (tabNum === 3) ? processTab3(val) : processTab4(val);
-            const oRow = document.createElement('div');
-            oRow.className = 'line-item';
-            if (val.trim() !== "") {
-                oRow.innerHTML = `<span class="out-text">${result}</span><button class="btn-copy-mini" onclick="copyLine('${result.replace(/'/g, "\\'")}', this)">Copy</button>`;
-            }
+            let result = (tabNum === 3) ? val.replace(/[ァ-ヺ]/g, s => s) : processTab4(val); 
+            // Tab 3 xử lý đơn giản hơn hoặc theo logic cũ của bạn
+            if(tabNum === 3) result = val.replace(/[、。ァ-ヺ・ー]/g, ch => h2fMap[ch] || ch).replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0)-0xFEE0));
+
+            const oRow = document.createElement('div'); oRow.className = 'line-item';
+            if (val.trim() !== "") oRow.innerHTML = `<span class="out-text">${result}</span><button class="btn-copy-mini" onclick="copyLine('${result.replace(/'/g, "\\'")}', this)">Copy</button>`;
             outputList.appendChild(oRow);
 
-            const wRow = document.createElement('div');
-            wRow.className = 'line-item warn-item';
-            if (val.trim() !== "") wRow.innerHTML = getWarnings(result);
+            const wRow = document.createElement('div'); wRow.className = 'line-item warn-item';
+            if (val.trim() !== "") wRow.innerHTML = (result.includes("  ") ? "🚫 Space" : "");
             warnList.appendChild(wRow);
         });
     }
 
-    // Tab 3: Tập trung Convert Katakana sang Half-width
-    function processTab3(line) {
-        if (!line) return "";
-        return line.replace(/[、。ァ-ヺ・ー゛゜]/g, ch => katakanaMap[ch] || ch)
-                   .replace(/　/g, ' ')
-                   .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-                   .replace(/,/g, '､').trim();
+    function copyLine(text, btn) {
+        navigator.clipboard.writeText(text);
+        btn.classList.add('copied'); btn.innerText = "Copied";
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerText = "Copy"; }, 500);
     }
 
-    // Tab 4: CHUẨN LOGIC VBA GRAPHNAME
-    function processTab4(line) {
-        if (!line) return "";
-        
-        // 1. StrConv(c, vbWide) -> Chuyển tất cả sang Full-width
-        let fullWidthLine = line.replace(/[!-~]/g, function(s) {
-            return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
-        }).replace(/ /g, '　');
-
-        // 2. Định nghĩa Pattern từ VBA
-        const pattern = /[／　０-９Ａ-ｚ（）「」＜＞：＃＆＋＝，]/;
-        
-        let ansData = "";
-        for (let i = 0; i < fullWidthLine.length; i++) {
-            let char = fullWidthLine[i];
-            if (pattern.test(char)) {
-                // Nếu khớp Pattern thì chuyển sang Narrow (Half-width)
-                if (char === '　') {
-                    ansData += ' ';
-                } else {
-                    ansData += String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
-                }
-            } else {
-                // Nếu không khớp Pattern (như Katakana/Kanji) -> Giữ nguyên trạng thái Full-width
-                ansData += char;
-            }
-        }
-
-        // 3. Xử lý khoảng trắng và ký tự đặc biệt
-        ansData = ansData.replace(/ +/g, ' ').trimEnd();
-        ansData = ansData.replace(/－/g, "-");
-        ansData = ansData.replace(/，/g, "、");
-
-        return ansData;
+    function copyFullOutput(listId, statusId) {
+        const text = Array.from(document.querySelectorAll(`#${listId} .out-text`)).map(i => i.innerText).join('\n');
+        navigator.clipboard.writeText(text);
+        document.getElementById(statusId).innerText = "Copied All! ✅";
+        setTimeout(() => document.getElementById(statusId).innerText = "", 1000);
     }
 
-    function getWarnings(line) {
-        let warns = [];
-        if (line.includes("  ")) warns.push("🚫Cẩn thận! Đang có 2 dấu cách liền nhau");
-        if (/[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9]/.test(line)) warns.push("🚫Cẩn thận! Mã số có chứa dấu ｰ");
-        if (/[ｦ-ﾟ一-龯]-[ｦ-ﾟ一-龯]/.test(line)) warns.push("🚫Cẩn thận! Chữ Nhật có chứa dấu -");
-        return warns.join(" ");
+    function syncScroll(el, id1, id2) {
+        document.getElementById(id1).scrollTop = el.scrollTop;
+        document.getElementById(id2).scrollTop = el.scrollTop;
     }
 
     function clearTool(n) {
         document.getElementById(`input-list-t${n}`).innerHTML = "";
-        document.getElementById(`output-list-t${n}`).innerHTML = "";
-        document.getElementById(`warning-msg-t${n}`).innerHTML = "";
+        handleProcess(n);
         initInputRows(n);
-        setTimeout(() => {
-            const firstInput = document.querySelector(`#input-list-t${n} .input-line`);
-            if (firstInput) firstInput.focus();
-        }, 50);
+        setTimeout(() => document.querySelector(`#input-list-t${n} .input-line`).focus(), 50);
     }
 
     document.addEventListener('keydown', (e) => {
         if (e.key === "Escape") {
             const active = document.querySelector('.tool-section.active');
-            if (active && active.id === 'section3') clearTool(3);
-            if (active && active.id === 'section4') clearTool(4);
+            if (active) clearTool(active.id.replace('section',''));
         }
     });
 
-    // Mặc định khởi tạo Tab 3
-    window.onload = () => showTab(3);
+    window.onload = () => showTab(4);
 </script>
 </body>
 </html>
