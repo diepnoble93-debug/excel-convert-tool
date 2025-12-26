@@ -311,12 +311,31 @@ function handleProcess(tabNum) {
         const wRow = document.createElement('div');
         wRow.className = 'line-item warn-item';
         if (res.trim() !== "") {
-            let warnings = [];
-            if (res.includes("  ")) warnings.push("🚫 Space x2");
-            if (/(?:[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9])/.test(res)) warnings.push("🚫 Lỗi ｰ");
-            if (/[ぁ-ゖァ-ヺ一-龯]-[ぁ-ゖァ-ヺ一-龯]/.test(res)) warnings.push("🚫 Lỗi nối -");
-            wRow.innerText = warnings.join(" ");
-        }
+    let warnings = [];
+
+    // 1. Kiểm tra Space thừa (Hoạt động cho cả Tab 3 và 4)
+    if (res.includes("  ")) {
+        warnings.push("🚫Cẩn thận! Đang có 2 dấu cách liền nhau!");
+    }
+
+    // 2. Kiểm tra dấu ｰ (Half-width) cạnh chữ/số (Lỗi thường gặp ở Tab 3)
+    if (/(?:[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9])/.test(res)) {
+        warnings.push("🚫Cẩn thận! Đang có dấu ｰ nối giữa Romanji");
+    }
+
+    // 3. Kiểm tra dấu nối "-" giữa các khối chữ Nhật (Cả Tab 3 và 4)
+    // Regex này bao quát cả Katakana bán giác (ｦ-ﾟ) và chữ Nhật Full-width
+    if (/[ｦ-ﾟぁ-ゖァ-ヺ一-龯]-[ｦ-ﾟぁ-ゖァ-ヺ一-龯]/.test(res)) {
+        warnings.push("🚫Cẩn thận! Đang có dấu - nối giữa chữ Nhật");
+    }
+
+    // 4. Cảnh báo riêng cho Tab 3: Nếu vẫn còn sót ký tự Full-width
+    if (tabNum === 3 && /[！-～]/.test(res)) {
+        warnings.push("🚫 Còn chữ Full-width");
+    }
+
+    wRow.innerText = warnings.join(" ");
+}
         warn.appendChild(wRow);
     });
 }
