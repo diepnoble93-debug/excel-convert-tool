@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Excel Tool For Summary - Full Version</title>
+    <title>Excel Tool For Summary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f5f6f7; }
@@ -112,7 +112,7 @@
                 <div id="input-list-t3" class="list-container" onscroll="syncScroll(this, 'output-list-t3', 'warning-msg-t3')"></div>
             </div>
             <div class="column">
-                <label>Output (Katakana Narrow)</label>
+                <label>Output</label>
                 <div id="output-list-t3" class="list-container" onscroll="syncScroll(this, 'input-list-t3', 'warning-msg-t3')"></div>
             </div>
             <div class="column">
@@ -134,7 +134,7 @@
                 <div id="input-list-t4" class="list-container" onscroll="syncScroll(this, 'output-list-t4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
-                <label>Output (VBA Logic)</label>
+                <label>Output</label>
                 <div id="output-list-t4" class="list-container" onscroll="syncScroll(this, 'input-list-t4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
@@ -201,7 +201,21 @@ function showTab(n) {
         focusInput(n);
     }
 }
+/* =====================================================
+   HÀM CUỘN ĐỒNG BỘ (SYNC SCROLL)
+===================================================== */
+function syncScroll(el, id1, id2) {
+    if (el.dataset.scrolling === "1") return;
+    el.dataset.scrolling = "1";
 
+    const top = el.scrollTop;
+    document.getElementById(id1).scrollTop = top;
+    document.getElementById(id2).scrollTop = top;
+
+    requestAnimationFrame(() => {
+        el.dataset.scrolling = "";
+    });
+}
 /* =====================================================
    TAB 1 & 2 (GIỮ NGUYÊN LOGIC, CHỈ LÀM AN TOÀN HƠN)
 ===================================================== */
@@ -363,12 +377,35 @@ function handleProcess(tabNum) {
 
             oRow.append(span, btn);
         }
-        out.appendChild(oRow);
+      // Cập nhật logic Warning chi tiết hơn
+        const wRow = document.createElement('div');
+        wRow.className = 'line-item warn-item';
+        
+        if (res.trim() !== "") {
+    let warnings = [];
 
-        const w = document.createElement('div');
-        w.className = 'line-item warn-item';
-        if (res.includes("  ")) w.innerText = "🚫 Space";
-        warn.appendChild(w);
+    // Space thừa
+    if (res.includes("  ")) warnings.push("🚫Cẩn thận! Đang có 2 dấu cách liền nhau");
+
+    // Lỗi dấu ｰ cạnh chữ/số ASCII
+    if (/(?:[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9])/.test(res)) {
+        warnings.push("🚫Cẩn thận! Đang có dấu ｰ lẫn trong mã máy");
+    }
+
+    // Lỗi dấu nối "-" giữa chữ Nhật
+    if (/[ぁ-ゖァ-ヺ一-龯]-[ぁ-ゖァ-ヺ一-龯]/.test(res)) {
+        warnings.push("🚫Cẩn thận! Đang có dấu - lẫn trong chữ Nhật");
+    }
+
+    // Lỗi full-width dash
+    if (/－/.test(res)) {
+        warnings.push("🚫 Full-width dash");
+    }
+
+    wRow.innerText = warnings.join(" ");
+}
+
+warn.appendChild(wRow);
     });
 }
 
