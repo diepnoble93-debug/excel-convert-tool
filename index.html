@@ -224,9 +224,8 @@
             return;
         }
 
-        // XỬ LÝ TRIM TỪNG DÒNG MỘT
-        const lines = rawText.split('\n');
-        const processedLines = lines.map(line => {
+        // 1. XỬ LÝ CONVERT VÀ TRIM TỪNG DÒNG
+        const processedLines = rawText.split('\n').map(line => {
             return line
                 .replace(/[、。ァ-ヺ・ー゛゜]/g, ch => katakanaMap[ch] || ch)
                 .replace(/　/g, ' ')
@@ -238,32 +237,45 @@
         const result = processedLines.join('\n');
         outputArea.value = result;
         
-        // KIỂM TRA LỖI VÀ TRÍCH DẪN CỤ THỂ
+        // 2. KIỂM TRA LỖI VÀ TRÍCH DẪN NGUYÊN CỤM
         let warns = [];
-        
-        // RULE 1: 2 dấu cách liên tiếp
-        if (result.includes("  ")) {
-            warns.push(`⚠️ [FORMAT] Phát hiện 2 dấu cách liên tiếp: "<span style="color:red; background:#ffeded">  </span>"`);
-        }
+        const linesForCheck = result.split('\n');
 
-        // RULE 2: 'ｰ' sai vị trí (Mã kỹ thuật)
-        const techError = result.match(/[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9]/g);
-        if (techError) {
-            // Lấy các lỗi duy nhất (unique)
-            const uniqueErrors = [...new Set(techError)];
-            warns.push(`🚫 [DRAWING] Ký tự '<span style="color:red">ｰ</span>' bị cấm trong mã: ${uniqueErrors.map(e => `<b style="color:red">${e}</b>`).join(", ")}`);
-        }
+        linesForCheck.forEach((line, index) => {
+            // RULE 1: 2 dấu cách liên tiếp
+            if (line.includes("  ")) {
+                const quoted = line.replace(/  /g, '<span style="background:#ffeded; border:1px dashed red;">&nbsp;&nbsp;</span>');
+                warns.push(`⚠️ [Dòng ${index+1}] Lỗi khoảng trắng kép: "...${quoted}..."`);
+            }
 
-        // RULE 3: '-' nối tiếng Nhật
-        const jpJoinError = result.match(/[ｦ-ﾟ一-龯]-[ｦ-ﾟ一-龯]/g);
-        if (jpJoinError) {
-            const uniqueErrors = [...new Set(jpJoinError)];
-            warns.push(`🚫 [DRAWING] Dấu '<span style="color:red">-</span>' nối chữ Nhật sai: ${uniqueErrors.map(e => `<b style="color:red">${e}</b>`).join(", ")}`);
-        }
+            // RULE 2: 'ｰ' sai trong mã kỹ thuật (ví dụ FEｰ10)
+            // Tìm cụm từ chứa ký tự lỗi (bao gồm chữ/số xung quanh)
+            const techRegex = /([A-Za-z0-9]+ｰ[A-Za-z0-9]*|[A-Za-z0-9]*ｰ[A-Za-z0-9]+)/g;
+            const techMatches = line.match(techRegex);
+            if (techMatches) {
+                techMatches.forEach(m => {
+                    const highlighted = m.replace('ｰ', '<span style="color:red; font-weight:bold; font-size:1.2em;">ｰ</span>');
+                    warns.push(`🚫 [Dòng ${index+1}] Mã kỹ thuật dùng sai dấu ｰ: "<b>${highlighted}</b>"`);
+                });
+            }
 
-        // Hiển thị cảnh báo
+            // RULE 3: '-' nối tiếng Nhật (ví dụ ｱ-ｲ)
+            const jpRegex = /([ｦ-ﾟ一-龯]+-[ｦ-ﾟ一-龯]+)/g;
+            const jpMatches = line.match(jpRegex);
+            if (jpMatches) {
+                jpMatches.forEach(m => {
+                    const highlighted = m.replace('-', '<span style="color:red; font-weight:bold; font-size:1.2em;">-</span>');
+                    warns.push(`🚫 [Dòng ${index+1}] Dùng dấu - nối chữ Nhật: "<b>${highlighted}</b>"`);
+                });
+            }
+        });
+
+        // 3. HIỂN THỊ CẢNH BÁO XUỐNG DƯỚI
         if (warns.length > 0) {
-            warningMsg.innerHTML = warns.join("<hr style='border:0; border-top:1px solid #ffc1c1; margin:5px 0'>");
+            // Loại bỏ các cảnh báo trùng lặp
+            const uniqueWarns = [...new Set(warns)];
+            warningMsg.innerHTML = `<div style="margin-bottom:5px; text-decoration:underline">Danh sách lỗi phát hiện:</div>` + 
+                                   uniqueWarns.join("<hr style='border:0; border-top:1px solid #ffc1c1; margin:5px 0'>");
             warningMsg.style.display = "block";
         } else {
             warningMsg.style.display = "none";
