@@ -2,7 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Excel Tool For Summary</title>
+    <title>Excel Tool For Summary - Full Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f5f6f7; }
         .container { max-width: 1600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -12,35 +13,96 @@
         .btn-tab.active { background: #007bff; color: white; }
         .tool-section { display: none; }
         .tool-section.active { display: block; }
+        
+        /* Layout Grid cho Tab 3 & 4 */
         .tool-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 20px; align-items: start; }
         .column { display: flex; flex-direction: column; }
         label { font-weight: bold; margin-bottom: 8px; color: #444; }
-        .list-container { height: 650px; overflow-y: auto; border: 1px solid #ccc; border-radius: 6px; background: #fff; box-sizing: border-box; }
+        
+        .list-container { height: 600px; overflow-y: auto; border: 1px solid #ccc; border-radius: 6px; background: #fff; box-sizing: border-box; }
         .line-item { display: flex; align-items: center; padding: 0 10px; border-bottom: 1px solid #eee; height: 35px; box-sizing: border-box; font-size: 14px; font-family: 'Consolas', monospace; }
         .input-line { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: inherit; color: #333; height: 100%; }
         .input-line:focus { background-color: #f0f7ff; }
         .out-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Nút Copy hiệu ứng mới */
         .btn-copy-mini { padding: 2px 5px; font-size: 10px; background: #495057; color: white; border-radius: 3px; margin-left: 5px; width: 55px; text-align: center; border: none; cursor: pointer; }
         .btn-copy-mini.copied { background: #1e7e34 !important; }
+
         .warning-panel { border-left: 5px solid #dc3545; color: #dc3545; font-size: 12px; font-weight: bold; }
         .warn-item { color: #dc3545; background-color: #fff5f5; }
+        
         .action-area { margin: 15px 0; display: flex; gap: 10px; }
+        .btn-green { background: #28a745; color: white; }
         .btn-orange { background: #fd7e14; color: white; }
         .btn-red { background: #dc3545; color: white; }
+        
+        /* Tab 1 & 2 Style */
+        #drop-zone, .upload-box { border: 2px dashed #007bff; padding: 30px; text-align: center; margin-bottom: 15px; border-radius: 8px; background: #f0f7ff; cursor: pointer; }
+        .file-info { color: #28a745; margin-top: 10px; font-size: 0.9em; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        th { background: #007bff; color: white; position: sticky; top: 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="menu-bar">
-        <button id="tab1-btn" class="btn-tab" onclick="location.reload()">Refresh Page</button>
+        <button id="tab1-btn" class="btn-tab active" onclick="showTab(1)">Tạo Checklist G5 Nido</button>
+        <button id="tab2-btn" class="btn-tab" onclick="showTab(2)">Ghép Bess vào G5 Convert</button>
         <button id="tab3-btn" class="btn-tab" onclick="showTab(3)">Convert Text</button>
-        <button id="tab4-btn" class="btn-tab active" onclick="showTab(4)">Name Checker</button>
+        <button id="tab4-btn" class="btn-tab" onclick="showTab(4)">Name Checker</button>
+    </div>
+
+    <div id="section1" class="tool-section active">
+        <div id="drop-zone" onclick="document.getElementById('file-svc').click()">
+            <b>Click hoặc Kéo thả các file SVC vào đây</b>
+            <input type="file" id="file-svc" multiple accept=".xlsx, .xlsm" style="display:none">
+            <div id="svc-list" class="file-info"></div>
+        </div>
+        <div class="action-area">
+            <button class="btn-green" onclick="processSVC()">Xử lý dữ liệu</button>
+            <button class="btn-orange" onclick="copyTable('table-svc-body')">Copy Kết quả</button>
+            <button class="btn-red" onclick="clearTool(1)">Clear</button>
+        </div>
+        <div style="overflow: auto; max-height: 500px; border: 1px solid #ddd;">
+            <table>
+                <thead><tr><th>ﾌｨｼﾞｶﾙｱﾄﾞﾚｽ</th><th>GG</th><th>PP</th><th>ｸﾞﾙｰﾌﾟ名称</th><th>表示名称</th><th>ﾀｲﾌﾟ</th><th>警報点</th><th>手元操作可</th><th>IPD単位</th><th>最小</th><th>最大</th><th>少数桁</th></tr></thead>
+                <tbody id="table-svc-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="section2" class="tool-section">
+        <div class="upload-box" onclick="document.getElementById('file-g5').click()">
+            <b>1. Upload file G5 Convert</b>
+            <input type="file" id="file-g5" accept=".xlsx, .xlsm" style="display:none">
+            <div id="g5-name" class="file-info"></div>
+        </div>
+        <div class="upload-box" onclick="document.getElementById('file-fx').click()">
+            <b>2. Upload file Checklist FX</b>
+            <input type="file" id="file-fx" accept=".xlsx, .xlsm" style="display:none">
+            <div id="fx-name" class="file-info"></div>
+        </div>
+        <div class="action-area">
+            <button class="btn-green" onclick="processG5FX()">Ghép dữ liệu</button>
+            <button class="btn-orange" onclick="copyTable('table-g5fx-body')">Copy Kết quả</button>
+            <button class="btn-red" onclick="clearTool(2)">Clear</button>
+        </div>
+        <div style="overflow: auto; max-height: 500px; border: 1px solid #ddd;">
+            <table>
+                <thead>
+                    <tr><th style="background:#6c757d">GG</th><th style="background:#6c757d">PP</th><th>表示名称</th><th>ﾎﾟｲﾝﾄ</th><th>状態ANA</th><th>警報</th><th>発停</th><th>信号種別</th><th>下限</th><th>上限</th></tr>
+                </thead>
+                <tbody id="table-g5fx-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="section3" class="tool-section">
         <div class="action-area">
-            <button class="btn-orange" onclick="copyFullOutput('output-list-t3', 'copy-status-t3')">Copy All Results</button>
+            <button class="btn-orange" onclick="copyFullOutput('output-list-t3', 'copy-status-t3')">Copy All</button>
             <button class="btn-red" onclick="clearTool(3)">Clear (Esc)</button>
             <span id="copy-status-t3" style="align-self:center; font-weight:bold; color:#28a745"></span>
         </div>
@@ -50,7 +112,7 @@
                 <div id="input-list-t3" class="list-container" onscroll="syncScroll(this, 'output-list-t3', 'warning-msg-t3')"></div>
             </div>
             <div class="column">
-                <label>Output</label>
+                <label>Output (Katakana Narrow)</label>
                 <div id="output-list-t3" class="list-container" onscroll="syncScroll(this, 'input-list-t3', 'warning-msg-t3')"></div>
             </div>
             <div class="column">
@@ -60,9 +122,9 @@
         </div>
     </div>
 
-    <div id="section4" class="tool-section active">
+    <div id="section4" class="tool-section">
         <div class="action-area">
-            <button class="btn-orange" onclick="copyFullOutput('output-list-t4', 'copy-status-t4')">Copy All Results</button>
+            <button class="btn-orange" onclick="copyFullOutput('output-list-t4', 'copy-status-t4')">Copy All</button>
             <button class="btn-red" onclick="clearTool(4)">Clear (Esc)</button>
             <span id="copy-status-t4" style="align-self:center; font-weight:bold; color:#28a745"></span>
         </div>
@@ -72,7 +134,7 @@
                 <div id="input-list-t4" class="list-container" onscroll="syncScroll(this, 'output-list-t4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
-                <label>Output (VBA Logic Fixed)</label>
+                <label>Output (VBA Logic)</label>
                 <div id="output-list-t4" class="list-container" onscroll="syncScroll(this, 'input-list-t4', 'warning-msg-t4')"></div>
             </div>
             <div class="column">
@@ -84,69 +146,102 @@
 </div>
 
 <script>
-    // Bảng mã hỗ trợ chuyển đổi Half-width sang Full-width (tương đương vbWide)
-    const h2fMap = {'ｱ':'ア','ｲ':'イ','ｳ':'ウ','ｴ':'エ','ｵ':'オ','ｶ':'カ','ｷ':'キ','ｸ':'ク','ｹ':'ケ','ｺ':'コ','ｻ':'サ','ｼ':'シ','ｽ':'ス','ｾ':'セ','ｿ':'ソ','ﾀ':'タ','ﾁ':'チ','ﾂ':'ツ','ﾃ':'テ','ﾄ':'ト','ﾅ':'ナ','ﾆ':'ニ','ﾇ':'ヌ','ﾈ':'ネ','ﾉ':'ノ','ﾊ':'ハ','ﾋ':'ヒ','ﾌ':'フ','ﾍ':'ヘ','ﾎ':'ホ','ﾏ':'マ','ﾐ':'ミ','ﾑ':'ム','ﾒ':'メ','ﾓ':'モ','ﾔ':'ヤ','ﾕ':'ユ','ﾖ':'ヨ','ﾗ':'ラ','ﾘ':'リ','ﾙ':'ル','ﾚ':'レ','ﾛ':'ロ','ﾜ':'ワ','ｦ':'ヲ','ﾝ':'ン','ｧ':'ァ','ｨ':'ィ','ｩ':'ゥ','ｪ':'ェ','ｫ':'ォ','ｬ':'ャ','ｭ':'ュ','ｮ':'ョ','ｯ':'ッ','ｰ':'ー','ﾞ':'゛','ﾟ':'゜','､':'、','｡':'。','･':'・','｢':'「','｣':'」'};
+    // --- KHAI BÁO BIẾN TOÀN CỤC ---
+    const h2fMap = {'ｱ':'ア','ｲ':'イ','ｳ':'ウ','ｴ':'エ','ｵ':'オ','ｶ':'カ','ｷ':'キ','ｸ':'ク','ｹ':'ケ','ｺ':'コ','ｻ':'サ','ｼ':'シ','ｽ':'ス','ｾ':'セ','ｿ':'ソ','ﾀ':'タ','ﾁ':'チ','ﾂ':'ツ','ﾃ':'テ','ﾄ':'ト','ﾅ':'ナ','ﾆ':'ニ','ﾇ':'ヌ','ﾈ':'ネ','ﾉ':'ノ','ﾊ':'ハ','ﾋ':'ヒ','ﾌ':'フ','ﾍ':'ヘ','ﾎ':'ホ','ﾏ':'マ','ﾐ':'ミ','ﾑ':'ム','ﾒ':'メ','ﾓ':'モ','ﾔ':'ヤ','ﾕ':'ユ','ﾖ':'ヨ','ﾗ':'ラ','ﾘ':'リ','ﾙ':'ル','ﾚ':'レ','ﾛ':'ロ','ﾜ':'ワ','ｦ':'ヲ','ﾝ':'ン','ｧ':'ァ','ｨ':'ィ','ｩ':'ゥ','ｪ':'ェ','ｫ':'ォ','ｬ':'ャ','ュ':'ュ','ョ':'ョ','ｯ':'ッ','ｰ':'ー','ﾞ':'゛','ﾟ':'゜','､':'、','｡':'。','･':'・','｢':'「','｣':'」'};
+    const f2hMap = Object.fromEntries(Object.entries(h2fMap).map(([k, v]) => [v, k]));
+    let svcFiles = [];
 
-    function toFullWidth(text) {
-        // Chuyển ký tự Alphabet/Số
-        let res = text.replace(/[!-~]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0)).replace(/ /g, '　');
-        // Chuyển Katakana bán giác sang toàn giác
-        let finalRes = "";
-        for (let i = 0; i < res.length; i++) {
-            let char = res[i];
-            // Xử lý biến âm (Dakuten) nếu có (Ví dụ: ｶ + ﾞ = ガ)
-            if (h2fMap[char]) {
-                finalRes += h2fMap[char];
-            } else {
-                finalRes += char;
-            }
-        }
-        return finalRes;
-    }
-
-    function processTab4(line) {
-        if (!line) return "";
-        
-        // 1. Tương đương StrConv(c, vbWide)
-        let rData = "";
-        for(let char of line) {
-            // Chuyển từng ký tự sang Wide trước khi xử lý
-            rData += toFullWidth(char);
-        }
-
-        // 2. Pattern từ VBA
-        const pattern = /[／　０-９Ａ-ｚ（）「」＜＞：＃＆＋＝，]/;
-        
-        let ansData = "";
-        for (let i = 0; i < rData.length; i++) {
-            let char = rData[i];
-            if (pattern.test(char)) {
-                // Nếu thuộc pattern -> chuyển sang Narrow (vbNarrow)
-                if (char === '　') {
-                    ansData += ' ';
-                } else {
-                    ansData += String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
-                }
-            } else {
-                // Không thuộc pattern (như Katakana) -> giữ nguyên Wide
-                ansData += char;
-            }
-        }
-
-        // 3. Post-processing
-        return ansData.replace(/ +/g, ' ').trimEnd().replace(/－/g, "-").replace(/，/g, "、");
-    }
-
-    // --- Các hàm hệ thống giữ nguyên ---
+    // --- XỬ LÝ TAB ---
     function showTab(n) {
         document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
         document.getElementById('section' + n).classList.add('active');
         document.getElementById('tab' + n + '-btn').classList.add('active');
-        initInputRows(n);
-        setTimeout(() => { document.querySelector(`#input-list-t${n} .input-line`)?.focus(); }, 50);
+        if (n >= 3) {
+            initInputRows(n);
+            setTimeout(() => document.querySelector(`#input-list-t${n} .input-line`)?.focus(), 50);
+        }
     }
 
+    // --- LOGIC TAB 1 & 2 ---
+    document.getElementById('file-svc').onchange = (e) => {
+        svcFiles = Array.from(e.target.files).filter(f => f.name.toLowerCase().startsWith('svc')).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
+        document.getElementById('svc-list').innerText = "Đã chọn: " + svcFiles.map(f => f.name).join(", ");
+    };
+
+    async function processSVC() {
+        const body = document.getElementById('table-svc-body'); body.innerHTML = "";
+        const colMap = [19, 13, 14, 16, 18, 12, 21, 50, 51, 52, 53, 54];
+        for (let f of svcFiles) {
+            let data = await readExcel(f);
+            data.slice(5).forEach(row => {
+                if(row[19]) {
+                    let tr = body.insertRow();
+                    colMap.forEach(idx => tr.insertCell().innerText = row[idx] || "");
+                }
+            });
+        }
+        alert("Xử lý xong Tab 1!");
+    }
+
+    async function processG5FX() {
+        const fileG5 = document.getElementById('file-g5').files[0];
+        const fileFX = document.getElementById('file-fx').files[0];
+        if(!fileG5 || !fileFX) return alert("Vui lòng upload đủ 2 file!");
+        
+        const dataG5 = await readExcel(fileG5);
+        const dataFX = await readExcel(fileFX, 1);
+        const body = document.getElementById('table-g5fx-body'); body.innerHTML = "";
+        
+        const fxMap = new Map();
+        dataFX.slice(1).forEach(r => { if(r[2]) fxMap.set(String(r[2]).trim(), r); });
+
+        dataG5.slice(1).forEach(row => {
+            let key = String(row[2]).trim();
+            let fxRow = fxMap.get(key) || [];
+            let tr = body.insertRow();
+            [0,1,2].forEach(i => tr.insertCell().innerText = row[i] || ""); // GG, PP, Name
+            tr.insertCell().innerText = fxRow[3] || ""; // Point
+            tr.insertCell().innerText = fxRow[15] || ""; // ANA
+            tr.insertCell().innerText = fxRow[16] || ""; // Alarm
+            tr.insertCell().innerText = fxRow[10] || ""; // Start/Stop
+            tr.insertCell().innerText = fxRow[5] || "";  // Type
+            tr.insertCell().innerText = fxRow[18] || ""; // Min
+            tr.insertCell().innerText = fxRow[19] || ""; // Max
+        });
+        alert("Xử lý xong Tab 2!");
+    }
+
+    // --- LOGIC TAB 3 & 4 (CORE) ---
+    function processTab3(line) {
+        if (!line) return "";
+        return line.replace(/[、。ァ-ヺ・ー]/g, ch => f2hMap[ch] || ch)
+                   .replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                   .replace(/　/g, ' ').replace(/,/g, '､').trim();
+    }
+
+    function processTab4(line) {
+        if (!line) return "";
+        // vbWide: Chuyển tất cả sang Full-width
+        let rData = "";
+        for (let char of line) {
+            let wide = char.replace(/[!-~]/g, s => String.fromCharCode(s.charCodeAt(0) + 0xFEE0)).replace(/ /g, '　');
+            rData += h2fMap[wide] || wide;
+        }
+        // Pattern lọc lại Narrow
+        const pattern = /[／　０-９Ａ-ｚ（）「」＜＞：＃＆＋＝，]/;
+        let ansData = "";
+        for (let char of rData) {
+            if (pattern.test(char)) {
+                ansData += (char === '　') ? ' ' : String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+            } else {
+                ansData += char;
+            }
+        }
+        return ansData.replace(/ +/g, ' ').trimEnd().replace(/－/g, "-").replace(/，/g, "、");
+    }
+
+    // --- UI HELPER ---
     function initInputRows(tabNum) {
         const container = document.getElementById(`input-list-t${tabNum}`);
         if (container.children.length > 0) return;
@@ -178,7 +273,7 @@
             addRow(tabNum, i);
             container.querySelectorAll('.input-line')[i].value = line;
         });
-        for(let i=0; i<10; i++) addRow(tabNum, lines.length + i);
+        for(let i=0; i<15; i++) addRow(tabNum, lines.length + i);
         handleProcess(tabNum);
     }
 
@@ -187,19 +282,13 @@
         const outputList = document.getElementById(`output-list-t${tabNum}`);
         const warnList = document.getElementById(`warning-msg-t${tabNum}`);
         outputList.innerHTML = ""; warnList.innerHTML = "";
-
         inputs.forEach(inp => {
-            let val = inp.value;
-            let result = (tabNum === 3) ? val.replace(/[ァ-ヺ]/g, s => s) : processTab4(val); 
-            // Tab 3 xử lý đơn giản hơn hoặc theo logic cũ của bạn
-            if(tabNum === 3) result = val.replace(/[、。ァ-ヺ・ー]/g, ch => h2fMap[ch] || ch).replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0)-0xFEE0));
-
-            const oRow = document.createElement('div'); oRow.className = 'line-item';
-            if (val.trim() !== "") oRow.innerHTML = `<span class="out-text">${result}</span><button class="btn-copy-mini" onclick="copyLine('${result.replace(/'/g, "\\'")}', this)">Copy</button>`;
+            let res = (tabNum === 3) ? processTab3(inp.value) : processTab4(inp.value);
+            let oRow = document.createElement('div'); oRow.className = 'line-item';
+            if (inp.value.trim()) oRow.innerHTML = `<span class="out-text">${res}</span><button class="btn-copy-mini" onclick="copyLine('${res.replace(/'/g, "\\'")}', this)">Copy</button>`;
             outputList.appendChild(oRow);
-
-            const wRow = document.createElement('div'); wRow.className = 'line-item warn-item';
-            if (val.trim() !== "") wRow.innerHTML = (result.includes("  ") ? "🚫 Space" : "");
+            let wRow = document.createElement('div'); wRow.className = 'line-item warn-item';
+            if (res.includes("  ")) wRow.innerText = "🚫 Space";
             warnList.appendChild(wRow);
         });
     }
@@ -213,7 +302,7 @@
     function copyFullOutput(listId, statusId) {
         const text = Array.from(document.querySelectorAll(`#${listId} .out-text`)).map(i => i.innerText).join('\n');
         navigator.clipboard.writeText(text);
-        document.getElementById(statusId).innerText = "Copied All! ✅";
+        document.getElementById(statusId).innerText = "Đã copy toàn bộ! ✅";
         setTimeout(() => document.getElementById(statusId).innerText = "", 1000);
     }
 
@@ -223,20 +312,39 @@
     }
 
     function clearTool(n) {
-        document.getElementById(`input-list-t${n}`).innerHTML = "";
-        handleProcess(n);
-        initInputRows(n);
-        setTimeout(() => document.querySelector(`#input-list-t${n} .input-line`).focus(), 50);
+        if(n >= 3) {
+            document.getElementById(`input-list-t${n}`).innerHTML = "";
+            initInputRows(n); handleProcess(n);
+        } else {
+            document.getElementById(`table-svc-body`).innerHTML = "";
+            document.getElementById(`table-g5fx-body`).innerHTML = "";
+        }
+    }
+
+    function readExcel(file, sheetIdx = 0) {
+        return new Promise((res) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const wb = XLSX.read(e.target.result, {type: 'binary'});
+                res(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[sheetIdx]], {header: 1, defval: ""}));
+            };
+            reader.readAsBinaryString(file);
+        });
+    }
+
+    function copyTable(id) {
+        const el = document.getElementById(id);
+        const range = document.createRange(); range.selectNode(el);
+        window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+        document.execCommand('copy'); alert("Đã copy bảng dữ liệu!");
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === "Escape") {
+        if(e.key === "Escape") {
             const active = document.querySelector('.tool-section.active');
-            if (active) clearTool(active.id.replace('section',''));
+            if(active) clearTool(parseInt(active.id.replace('section','')));
         }
     });
-
-    window.onload = () => showTab(4);
 </script>
 </body>
 </html>
