@@ -24,9 +24,10 @@
         .convert-container { max-width: 800px; margin: 0 auto; }
         textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; resize: vertical; margin-bottom: 10px; }
         
-        /* Style Warning Msg mới */
+        /* Cảnh báo: Toàn bộ in đậm và đỏ */
         #warning-msg { 
-            color: #333; 
+            color: #dc3545; 
+            font-weight: bold;
             font-size: 0.95em; 
             margin-top: 20px; 
             display: none; 
@@ -43,7 +44,20 @@
         .btn-orange { background: #fd7e14; color: white; }
         .btn-red { background: #dc3545; color: white; }
         .file-info { color: #28a745; margin-top: 10px; font-weight: normal; font-size: 0.9em; }
-        .err-highlight { color: #28a745; font-weight: bold; font-size: 1.1em; }
+        
+        /* Màu xanh lá cho bộ phận bị sai */
+        .err-highlight { 
+            color: #28a745 !important; 
+            font-weight: 900; 
+            font-size: 1.1em;
+            text-decoration: underline;
+        }
+        /* Style riêng cho khoảng trắng lỗi để nhìn thấy được */
+        .space-err {
+            background-color: #e8f5e9;
+            border: 1px dashed #28a745;
+            color: #28a745 !important;
+        }
     </style>
 </head>
 <body>
@@ -252,8 +266,8 @@
 
             // RULE 1: 2 dấu cách liên tiếp
             if (line.includes("  ")) {
-                let h = line.replace(/  /g, '<span class="err-highlight">[khoảng trắng kép]</span>');
-                warns.push(`🚫 ${h} bị lỗi 2 dấu cách liên tiếp`);
+                let h = line.replace(/  /g, '<span class="err-highlight space-err">&nbsp;&nbsp;</span>');
+                warns.push(`🚫 ${h} bị sai dấu cách`);
             }
 
             // RULE 2: 'ｰ' sai trong mã kỹ thuật
