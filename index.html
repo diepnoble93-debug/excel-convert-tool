@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Excel Tool For Summary - Fixed Tab 4</title>
+    <title>Excel Tool For Summary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f5f6f7; }
@@ -26,14 +26,8 @@
         .warning-panel { border-left: 5px solid #dc3545; color: #dc3545; font-size: 12px; font-weight: bold; }
         .warn-item { color: #dc3545; background-color: #fff5f5; }
         .action-area { margin: 15px 0; display: flex; gap: 10px; }
-        .btn-green { background: #28a745; color: white; }
         .btn-orange { background: #fd7e14; color: white; }
         .btn-red { background: #dc3545; color: white; }
-        .file-info { color: #28a745; margin-top: 10px; font-size: 0.9em; }
-        #drop-zone, .upload-box { border: 2px dashed #007bff; padding: 30px; text-align: center; margin-bottom: 15px; border-radius: 8px; background: #f0f7ff; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background: #007bff; color: white; }
     </style>
 </head>
 <body>
@@ -46,56 +40,11 @@
         <button id="tab4-btn" class="btn-tab" onclick="showTab(4)">Name Checker</button>
     </div>
 
-    <div id="section1" class="tool-section active">
-        <div id="drop-zone" onclick="document.getElementById('file-svc').click()">
-            <b>Chọn các file SVC</b>
-            <input type="file" id="file-svc" multiple accept=".xlsx, .xlsm" style="display:none">
-            <div id="svc-list" class="file-info"></div>
-        </div>
-        <div class="action-area">
-            <button class="btn-green" onclick="processSVC()">Bắt đầu ghép dữ liệu</button>
-            <button class="btn-orange" onclick="copyTable('table-svc-body')">Copy kết quả</button>
-            <button class="btn-red" onclick="clearTool(1)">Clear</button>
-        </div>
-        <div style="overflow: auto; max-height: 500px;">
-            <table>
-                <thead><tr><th>ﾌｨｼﾞｶﾙｱﾄﾞﾚｽ</th><th>GG</th><th>PP</th><th>ｸﾞﾙｰﾌﾟ名称</th><th>表示名称</th><th>ﾀｲﾌﾟ</th><th>警報点</th><th>手元操作可</th><th>IPD単位</th><th>最小</th><th>最大</th><th>少数桁</th></tr></thead>
-                <tbody id="table-svc-body"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="section2" class="tool-section">
-        <div class="upload-box" onclick="document.getElementById('file-g5').click()">
-            <b>Upload file G5 convert tại đây</b>
-            <input type="file" id="file-g5" accept=".xlsx, .xlsm" style="display:none">
-            <div id="g5-name" class="file-info"></div>
-        </div>
-        <div class="upload-box" onclick="document.getElementById('file-fx').click()">
-            <b>Upload file checklist FX tại đây</b>
-            <input type="file" id="file-fx" accept=".xlsx, .xlsm" style="display:none">
-            <div id="fx-name" class="file-info"></div>
-        </div>
-        <div class="action-area">
-            <button class="btn-green" onclick="processG5FX()">Thực hiện chuyển đổi</button>
-            <button class="btn-orange" onclick="copyTable('table-g5fx-body', true)">Copy kết quả</button>
-            <button class="btn-red" onclick="clearTool(2)">Clear</button>
-        </div>
-        <div style="overflow: auto; max-height: 500px;">
-            <table>
-                <thead>
-                    <tr><th style="background:#6c757d">GG</th><th style="background:#6c757d">PP</th><th>表示名称</th><th>ﾎﾟｲﾝﾄ</th><th>状態ANA</th><th>警報</th><th>発停</th><th>信号種別</th><th>下限</th><th>上限</th></tr>
-                </thead>
-                <tbody id="table-g5fx-body"></tbody>
-            </table>
-        </div>
-    </div>
-
     <div id="section3" class="tool-section">
         <div class="action-area">
             <button class="btn-orange" onclick="copyFullOutput('output-list-t3', 'copy-status-t3')">Copy tất cả kết quả</button>
             <button class="btn-red" onclick="clearTool(3)">Clear (Esc)</button>
-            <span id="copy-status-t3" style="align-self:center; font-weight:bold;"></span>
+            <span id="copy-status-t3" style="align-self:center; font-weight:bold; color:#28a745"></span>
         </div>
         <div class="tool-grid">
             <div class="column">
@@ -117,7 +66,7 @@
         <div class="action-area">
             <button class="btn-orange" onclick="copyFullOutput('output-list-t4', 'copy-status-t4')">Copy tất cả kết quả</button>
             <button class="btn-red" onclick="clearTool(4)">Clear (Esc)</button>
-            <span id="copy-status-t4" style="align-self:center; font-weight:bold;"></span>
+            <span id="copy-status-t4" style="align-self:center; font-weight:bold; color:#28a745"></span>
         </div>
         <div class="tool-grid">
             <div class="column">
@@ -137,7 +86,7 @@
 </div>
 
 <script>
-    const katakanaMap = {'。': '｡', '、': '､', '「': '｢', '」': '｣', '・': '･', 'ァ': 'ｧ', 'ア': 'ｱ', 'ィ': 'ｨ', 'イ': 'ｲ', 'ゥ': 'ｩ', 'ウ': 'ｳ', 'ェ': 'ｪ', 'エ': 'ｴ', 'ォ': 'ｫ', 'オ': 'ｵ', 'カ': 'ｶ', 'ガ': 'ｶﾞ', 'キ': 'ｷ', 'ギ': 'ｷﾞ', 'ク': 'ｸ', 'グ': 'ｸﾞ', 'ケ': 'ｹ', 'ゲ': 'ｹﾞ', 'コ': 'ｺ', 'ゴ': 'ｺﾞ', 'サ': 'ｻ', 'ザ': 'ｻﾞ', 'シ': 'ｼ', 'ジ': 'ｼﾞ', 'ス': 'ｽ', 'ズ': 'ｽﾞ', 'セ': 'ｾ', 'ゼ': 'ｾﾞ', 'ソ': 'ｿ', 'ゾ': 'ｿﾞ', 'タ': 'ﾀ', 'ダ': 'ﾀﾞ', 'チ': 'ﾁ', 'ヂ': 'ﾁﾞ', 'ッ': 'ｯ', 'ツ': 'ﾂ', 'ヅ': 'ﾂﾞ', 'テ': 'ﾃ', 'デ': 'ﾃﾞ', 'ト': 'ﾄ', 'ド': 'ﾄﾞ', 'ナ': 'ﾅ', 'ニ': 'ﾆ', 'ヌ': 'ﾇ', 'ネ': 'ﾈ', 'ノ': 'ﾉ', 'ハ': 'ﾊ', 'バ': 'ﾊﾞ', 'パ': 'ﾊﾟ', 'ヒ': 'ﾋ', 'ビ': 'ﾋﾞ', 'ピ': 'ﾋﾟ', 'フ': 'ﾌ', 'ブ': 'ﾌﾞ', 'プ': 'ﾌﾟ', 'ヘ': 'ﾍ', 'ベ': 'ﾍﾞ', 'ペ': 'ﾍﾟ', 'ホ': 'ﾎ', 'ボ': 'ﾎﾞ', 'ポ': 'ﾎﾟ', 'マ': 'ﾏ', 'ミ': 'ﾐ', 'ム': 'ﾑ', 'メ': 'ﾒ', 'モ': 'ﾓ', 'ヤ': 'ﾔ', 'ユ': 'ﾕ', 'ヨ': 'ﾖ', 'ャ': 'ｬ', 'ュ': 'ｭ', 'ョ': 'ｮ', 'ラ': 'ﾗ', 'リ': 'ﾘ', 'ル': 'ﾙ', 'レ': 'ﾚ', 'ロ': 'ﾛ', 'ワ': 'ﾜ', 'ヲ': 'ｦ', 'ン': 'ﾝ', 'ヴ': 'ｳﾞ', 'ヵ': 'ｶ', 'ヶ': 'ｹ', 'ー': 'ｰ', '゛': 'ﾞ', '゜': 'ﾟ', '　': ' '};
+    const katakanaMap = {'。': '｡', '、': '､', '「': '｢', '」': '｣', '・': '･', 'ァ': 'ｧ', 'ア': 'ｱ', 'ィ': 'ｨ', 'イ': 'ｲ', 'ゥ': 'ｩ', 'ウ': 'ｳ', 'ェ': 'ｪ', 'エ': 'ｴ', 'ォ': 'ｫ', 'オ': 'ｵ', 'カ': 'ｶ', 'ガ': 'ｶﾞ', 'キ': 'ｷ', 'ギ': 'ｷﾞ', 'ク': 'ｸ', 'グ': 'ｸﾞ', 'ケ': 'ｹ', 'ゲ': 'ｹﾞ', 'コ': 'ｺ', 'ゴ': 'ｺﾞ', 'サ': 'ｻ', 'ザ': 'ｻﾞ', 'シ': 'ｼ', 'ジ': 'ｼﾞ', 'ス': 'ｽ', 'ズ': 'ｽﾞ', 'セ': 'ｾ', 'ゼ': 'ｾﾞ', 'ソ': 'ｿ', 'ゾ': 'ｿﾞ', 'タ': 'ﾀ', 'ダ': 'ﾀﾞ', 'チ': 'ﾁ', 'ヂ': 'ﾁﾞ', 'ッ': 'ｯ', 'ツ': 'ﾂ', 'ヅ': 'ﾂﾞ', 'テ': 'ﾃ', 'デ': 'ﾃﾞ', 'ト': 'ﾄ', 'ド': 'ﾄﾞ', 'ナ': 'ﾅ', 'ニ': 'ﾆ', 'ヌ': 'ﾇ', 'ネ': 'ﾈ', 'ノ': 'ﾉ', 'ハ': 'ﾊ', 'バ': 'ﾊﾞ', 'パ': 'ﾊﾟ', 'ヒ': 'ﾋ', 'ビ': 'ﾋﾞ', 'ピ': 'ﾋﾟ', 'フ': 'ﾌ', 'ブ': 'ﾌﾞ', 'プ': 'ﾌﾟ', 'ヘ': 'ﾍ', 'ベ': 'ﾍﾞ', 'ペ': 'ﾍﾟ', 'ホ': 'ﾎ', 'ボ': 'ﾎﾞ', 'ポ': 'ﾎﾟ', '마': 'ﾏ', 'ミ': 'ﾐ', 'ム': 'ﾑ', 'メ': 'ﾒ', 'モ': 'ﾓ', 'ヤ': 'ﾔ', 'ユ': 'ﾕ', 'ヨ': 'ﾖ', 'ャ': 'ｬ', 'ュ': 'ｭ', 'ョ': 'ｮ', 'ラ': 'ﾗ', 'リ': 'ﾘ', 'ル': 'ﾙ', 'レ': 'ﾚ', 'ロ': 'ﾛ', 'ワ': 'ﾜ', 'ヲ': 'ｦ', 'ン': 'ﾝ', 'ヴ': 'ｳﾞ', 'ヵ': 'ｶ', 'ヶ': 'ｹ', 'ー': 'ｰ', '゛': 'ﾞ', '゜': 'ﾟ', '　': ' '};
 
     function showTab(n) {
         document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
@@ -173,7 +122,7 @@
         const text = Array.from(items).map(i => i.innerText).join('\n');
         navigator.clipboard.writeText(text).then(() => {
             const s = document.getElementById(statusId);
-            s.innerText = "Copied All! ✅";
+            s.innerText = "Đã copy tất cả! ✅";
             setTimeout(() => s.innerText = "", 1000);
         });
     }
@@ -223,7 +172,7 @@
             row.appendChild(input);
             container.appendChild(row);
         });
-        for(let i=0; i<10; i++) addRow(tabNum, lines.length + i);
+        for(let i=0; i<15; i++) addRow(tabNum, lines.length + i);
         handleProcess(tabNum);
     }
 
@@ -251,51 +200,68 @@
         });
     }
 
+    // Tab 3: Tập trung Convert Katakana sang Half-width
     function processTab3(line) {
+        if (!line) return "";
         return line.replace(/[、。ァ-ヺ・ー゛゜]/g, ch => katakanaMap[ch] || ch)
                    .replace(/　/g, ' ')
                    .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
                    .replace(/,/g, '､').trim();
     }
 
-    // ĐÃ SỬA: CHỈ CHUYỂN NHỮNG KÝ TỰ TRONG PATTERN, KHÔNG TỰ Ý CHUYỂN CHUỖI GỐC
+    // Tab 4: CHUẨN LOGIC VBA GRAPHNAME
     function processTab4(line) {
         if (!line) return "";
-        const pattern = /[／　０-９Ａ-ｚ（）「」＜＞：＃＆＋＝]/;
-        let ans = "";
-        for (let char of line) {
+        
+        // 1. StrConv(c, vbWide) -> Chuyển tất cả sang Full-width
+        let fullWidthLine = line.replace(/[!-~]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+        }).replace(/ /g, '　');
+
+        // 2. Định nghĩa Pattern từ VBA
+        const pattern = /[／　０-９Ａ-ｚ（）「」＜＞：＃＆＋＝，]/;
+        
+        let ansData = "";
+        for (let i = 0; i < fullWidthLine.length; i++) {
+            let char = fullWidthLine[i];
             if (pattern.test(char)) {
-                ans += (char === '　') ? ' ' : String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+                // Nếu khớp Pattern thì chuyển sang Narrow (Half-width)
+                if (char === '　') {
+                    ansData += ' ';
+                } else {
+                    ansData += String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
+                }
             } else {
-                ans += char; // Giữ nguyên trạng thái gốc (Katakana/Kanji...)
+                // Nếu không khớp Pattern (như Katakana/Kanji) -> Giữ nguyên trạng thái Full-width
+                ansData += char;
             }
         }
-        return ans.replace(/ +/g, ' ').trimEnd().replace(/－/g, "-").replace(/，/g, "、");
+
+        // 3. Xử lý khoảng trắng và ký tự đặc biệt
+        ansData = ansData.replace(/ +/g, ' ').trimEnd();
+        ansData = ansData.replace(/－/g, "-");
+        ansData = ansData.replace(/，/g, "、");
+
+        return ansData;
     }
 
     function getWarnings(line) {
         let warns = [];
-        if (line.includes("  ")) warns.push("🚫 Dấu cách");
-        if (/[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9]/.test(line)) warns.push("🚫 Lỗi dấu ｰ");
-        if (/[ｦ-ﾟ一-龯]-[ｦ-ﾟ一-龯]/.test(line)) warns.push("🚫 Lỗi nối -");
+        if (line.includes("  ")) warns.push("🚫Cẩn thận! Đang có 2 dấu cách liền nhau");
+        if (/[A-Za-z0-9]ｰ|ｰ[A-Za-z0-9]/.test(line)) warns.push("🚫Cẩn thận! Mã số có chứa dấu ｰ");
+        if (/[ｦ-ﾟ一-龯]-[ｦ-ﾟ一-龯]/.test(line)) warns.push("🚫Cẩn thận! Chữ Nhật có chứa dấu -");
         return warns.join(" ");
     }
 
     function clearTool(n) {
-        if (n === 3 || n === 4) {
-            document.getElementById(`input-list-t${n}`).innerHTML = "";
-            document.getElementById(`output-list-t${n}`).innerHTML = "";
-            document.getElementById(`warning-msg-t${n}`).innerHTML = "";
-            initInputRows(n);
-            setTimeout(() => {
-                const firstInput = document.querySelector(`#input-list-t${n} .input-line`);
-                if (firstInput) firstInput.focus();
-            }, 50);
-        } else if (n === 1) {
-            document.getElementById('table-svc-body').innerHTML = "";
-        } else if (n === 2) {
-            document.getElementById('table-g5fx-body').innerHTML = "";
-        }
+        document.getElementById(`input-list-t${n}`).innerHTML = "";
+        document.getElementById(`output-list-t${n}`).innerHTML = "";
+        document.getElementById(`warning-msg-t${n}`).innerHTML = "";
+        initInputRows(n);
+        setTimeout(() => {
+            const firstInput = document.querySelector(`#input-list-t${n} .input-line`);
+            if (firstInput) firstInput.focus();
+        }, 50);
     }
 
     document.addEventListener('keydown', (e) => {
@@ -306,44 +272,8 @@
         }
     });
 
-    // Excel functions... (giữ nguyên)
-    let svcFiles = [];
-    document.getElementById('file-svc').onchange = (e) => {
-        svcFiles = Array.from(e.target.files).filter(f => f.name.toLowerCase().startsWith('svc')).sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
-        document.getElementById('svc-list').innerText = "File đã chọn: " + svcFiles.map(f => f.name).join(", ");
-    };
-    function readExcel(file, sheetIndex = 0) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const wb = XLSX.read(e.target.result, { type: 'binary' });
-                const sheet = wb.Sheets[wb.SheetNames[sheetIndex]];
-                resolve(XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }));
-            };
-            reader.readAsBinaryString(file);
-        });
-    }
-    function copyTable(bodyId, skipFirstTwo = false) {
-        const body = document.getElementById(bodyId);
-        const sel = window.getSelection(); sel.removeAllRanges();
-        const range = document.createRange();
-        range.selectNodeContents(body); sel.addRange(range); document.execCommand('copy');
-        alert("Đã copy!"); sel.removeAllRanges();
-    }
-    async function processSVC() {
-        const body = document.getElementById('table-svc-body');
-        const colMap = [19, 13, 14, 16, 18, 12, 21, 50, 51, 52, 53, 54];
-        body.innerHTML = "";
-        for (let f of svcFiles) {
-            let rows = (await readExcel(f)).slice(5);
-            rows.forEach(row => {
-                if(row.some(c => String(c).trim() !== "")) {
-                    let tr = body.insertRow();
-                    colMap.forEach(idx => tr.insertCell().innerText = row[idx] || "");
-                }
-            });
-        }
-    }
+    // Mặc định khởi tạo Tab 3
+    window.onload = () => showTab(3);
 </script>
 </body>
 </html>
